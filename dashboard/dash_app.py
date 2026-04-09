@@ -82,7 +82,7 @@ def finalize_fig(fig: go.Figure) -> go.Figure:
 
 
 def tab_guide(title: str, markdown_body: str) -> dbc.Card:
-    """Explainer card: what the tab offers and how to use it."""
+    """Short note above tab content (sources and behavior)."""
     return dbc.Card(
         [
             html.Div([html.Span("ⓘ", className="me-1"), title], className="guide-title"),
@@ -374,53 +374,29 @@ _init_metrics, _init_bar, _init_heat, _init_table, _init_leisure = build_allocat
     int(opt["default_current_inventory"]["Leisure/Mixed Use"]),
 )
 
-# Tab explainer copy (what / how / interact)
+# Short tab notes (data source, limits)
 _GUIDE_HIST = """
-**What you'll see** — Daily system-wide trip totals over the dataset, mean demand by hour (working vs weekend/holiday), and average demand by weather situation code.
-
-**How it works** — Data come from the validated `clean_hourly` table. Anomaly days are marked in the pipeline (extreme daily z-scores and configured dates).
-
-**How to use** — Flip *Include anomaly days* to show or hide those dates so you can contrast “typical” patterns with unusual days.
+Daily system-wide trips, mean demand by hour (working day vs weekend/holiday), and mean demand by weather code, from `clean_hourly`. Anomaly days follow the validation rules (z-scores and configured dates). Toggle *Include anomaly days* to include or exclude those dates.
 """
 
 _GUIDE_FC = """
-**What you'll see** — The pipeline’s **reference next-day** hourly forecast for the chosen calendar day, plus an empirical uncertainty band from cross-validated residuals. Actuals appear when that day exists in history.
-
-**How it works** — Predictions are frozen artifacts from `05_generate_forecasts` (best model or seasonal naive). The band width is based on residual spread, not a parametric prediction interval.
-
-**Interactivity** — Sidebar **costs do not** change this chart; use **Allocation** to explore cost-driven fleet targets.
+Reference next-day hourly forecast for the selected day and an empirical band from cross-validation residuals; actuals appear when the day is in history. Values come from `05_generate_forecasts` and do not respond to sidebar costs (those affect the Allocation tab only).
 """
 
 _GUIDE_ALLOC = """
-**What you'll see** — Hourly **planned availability** vs raw forecast, KPIs (shortage/idle proxies, total moves), a **zone move matrix**, and per-zone inventory after the overnight LP.
-
-**How it works** — A **newsvendor-style** critical fractile adjusts the forecast using CV residuals; results clip to **fleet size**. Zone targets split peak availability using your **share** sliders; **PuLP** minimizes move + imbalance costs subject to **move capacity**.
-
-**How to use** — Drag **shortage / idle / fleet / move cost**, set **inventories** and **two zone shares** (leisure is the remainder). Charts and the table **update live**.
+Planned hourly availability vs raw forecast, shortage/idle proxies, moves, zone matrix, and post-LP inventory. A critical fractile on CV residuals feeds a newsvendor-style plan clipped to fleet size; zone splits use the share sliders; PuLP minimizes move and imbalance costs. Adjust sliders to refresh charts and tables.
 """
 
 _GUIDE_SCEN = """
-**What you'll see** — Pre-run **what-if** rows from `08_scenarios`: weather stress, demand surge, forecast error multiplier, fleet size, and cost shocks—each re-optimized for availability + zones.
-
-**How it works** — Scenarios re-predict (or scale forecasts), rebuild the availability plan, and solve rebalancing with scenario-specific parameters. Results are **sorted by weighted cost index**.
-
-**Interactivity** — Values are **static** until you re-run the pipeline with different `configs/project_config.yml` scenario blocks. Use for **comparison storytelling**, not live what-if (use **Allocation** for that).
+Batch scenario rows from `08_scenarios` (weather stress, surge, forecast error scale, fleet, costs), each re-optimized for availability and zones, sorted by weighted cost index. Rerun the pipeline to change scenarios; use Allocation for interactive what-ifs.
 """
 
 _GUIDE_DIAG = """
-**What you'll see** — **Holdout** RMSE/MAE by model (overall) and **permutation importance** for the fitted winner (empty for seasonal naive).
-
-**How it works** — Metrics come from the late-2012 holdout with optional anomaly exclusion; importance is computed on holdout predictions vs actual counts.
-
-**Interactivity** — **Read-only** diagnostics from `04_train_models`; retrain by re-running the pipeline.
+Holdout RMSE/MAE by model and permutation importance for the selected model (importance empty for seasonal naive). Metrics use the late-2012 holdout with optional anomaly exclusion. Retrain via `04_train_models` through the full pipeline.
 """
 
 _GUIDE_BIZ = """
-**What you'll see** — **Forecast-driven** planning vs a **static hourly mean** baseline: total proxy shortage/idle, weighted cost index, and service/utilization proxies from the reference day.
-
-**How it works** — Built in `06_capacity_policy` using default config costs at pipeline run time. Same residual-adjustment machinery as Allocation, compared to a naive hourly profile.
-
-**Interactivity** — Table and KPIs are **fixed** to the last pipeline run; they **do not** track sidebar sliders. Adjust costs in the pipeline or compare mentally to the **live** Allocation tab.
+Forecast-based policy vs a static hourly-mean baseline: proxy shortage/idle, cost index, and service/utilization proxies for the reference run from `06_capacity_policy`. Figures do not follow sidebar sliders; compare to the Allocation tab for live cost changes.
 """
 
 app = Dash(
@@ -431,7 +407,7 @@ app = Dash(
 )
 server = app.server
 
-app.title = "Mobility Ops Desk · Dash"
+app.title = "Bike-share dashboard (Dash)"
 
 app.layout = dbc.Container(
     [
@@ -439,23 +415,20 @@ app.layout = dbc.Container(
             [
                 html.Div(
                     [
-                        html.Div("Operations intelligence", className="velo-kicker"),
-                        html.H1("Forecast demand. Plan fleet. Rebalance zones.", className="velo-title"),
+                        html.Div("MSE 433", className="velo-kicker"),
+                        html.H1("Demand, availability, and zone rebalancing", className="velo-title"),
                         html.P(
                             [
-                                "Use the ",
-                                html.Strong("tabs"),
-                                " to move from history → forecast → live optimization. The left panel drives ",
-                                html.Strong("allocation & rebalancing"),
-                                " in real time; each tab below starts with a short guide.",
+                                "Tabs cover history, forecast, interactive allocation, scenarios, diagnostics, and policy comparison. The left panel updates ",
+                                html.Strong("allocation"),
+                                " and rebalancing; each tab opens with a short note on data sources and limits.",
                             ],
                             className="velo-sub",
                         ),
                         html.Div(
                             [
                                 html.Span(f"Best model · {artifacts['metadata']['best_model_name']}", className="velo-pill"),
-                                html.Span("Light theme · high contrast", className="velo-pill"),
-                                html.Span("Live LP + newsvendor", className="velo-pill"),
+                                html.Span("Newsvendor + zone LP", className="velo-pill"),
                             ],
                             className="velo-meta",
                         ),
@@ -471,8 +444,8 @@ app.layout = dbc.Container(
                     [
                         html.Div(
                             [
-                                html.Div("Mobility Ops Desk", className="sidebar-brand"),
-                                html.Div("Live parameters", className="sidebar-title"),
+                                html.Div("Bike-share", className="sidebar-brand"),
+                                html.Div("Costs and zones", className="sidebar-title"),
                                 html.Label("Shortage penalty", className="label-ops small"),
                                 dcc.Slider(
                                     id="shortage-cost",

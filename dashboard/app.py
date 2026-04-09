@@ -24,7 +24,7 @@ from bikeshare_project.paths import DATA_PROCESSED, MODELS, RESULTS_RECOMMENDATI
 
 
 st.set_page_config(
-    page_title="Mobility Ops Desk · Bike-share",
+    page_title="Bike-share · MSE 433",
     page_icon="🚲",
     layout="wide",
     initial_sidebar_state="expanded",
@@ -105,12 +105,12 @@ st.markdown(
     f"""
 <div class="velo-hero">
   <div class="velo-hero-inner">
-    <div class="velo-kicker">Operations intelligence</div>
-    <h1 class="velo-title">Forecast demand. Plan fleet. Rebalance zones.</h1>
-    <p class="velo-sub">Interactive decision support for next-day bike availability, overnight moves, and scenario trade-offs—grounded in your pipeline outputs.</p>
+    <div class="velo-kicker">MSE 433</div>
+    <h1 class="velo-title">Demand, availability, and zone rebalancing</h1>
+    <p class="velo-sub">Next-day hourly forecasts, fleet availability targets, overnight zone moves, and scenario results from the project pipeline.</p>
     <div class="velo-meta">
       <span class="velo-pill">Best model · {artifacts["metadata"]["best_model_name"]}</span>
-      <span class="velo-pill">Pipeline · validate → forecast → optimize</span>
+      <span class="velo-pill">Stages · validation through scenarios</span>
     </div>
   </div>
 </div>
@@ -120,7 +120,7 @@ st.markdown(
 
 with st.sidebar:
     st.markdown(
-        '<p class="velo-sidebar-brand">Mobility Ops Desk</p><p class="velo-sidebar-title">Live parameters</p><div class="velo-sidebar-rule"></div>',
+        '<p class="velo-sidebar-brand">Parameters</p><p class="velo-sidebar-title">Costs and zones</p><div class="velo-sidebar-rule"></div>',
         unsafe_allow_html=True,
     )
     shortage_cost = st.slider("Shortage penalty", min_value=1.0, max_value=12.0, value=float(config["optimization"]["shortage_cost"]), step=0.5)

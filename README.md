@@ -19,8 +19,8 @@ data/interim/             Validation and EDA artifacts
 data/processed/           Modeling tables and forecast artifacts
 dashboard/                Streamlit + Dash apps, shared `theme.py`
 models/                   Saved trained models and metadata
-reports/                  Report outline and draft-ready content
-results/figures/          Saved report figures
+reports/                  Optional write-up figures (`generate_report_figures.py` → `figures/`)
+results/figures/          EDA and pipeline figures (e.g. from `02_eda.py`)
 results/tables/           Saved analysis tables
 results/recommendations/  Saved policy outputs
 src/bikeshare_project/    Shared package code
@@ -35,15 +35,9 @@ src/bikeshare_project/    Shared package code
 run_pipeline.py           Full end-to-end execution
 ```
 
-## Data Inputs
+## Data inputs
 
-The default configuration expects the provided source files at:
-
-- `/Users/devshah/Downloads/archive/hour.csv`
-- `/Users/devshah/Downloads/archive/day.csv`
-- `/Users/devshah/Downloads/archive/Readme.txt`
-
-`01_validate_data.py` copies the CSV files into `data/raw/` so the rest of the pipeline uses workspace-local inputs.
+Set `paths.source_hour_csv`, `paths.source_day_csv`, and `paths.source_readme` in `configs/project_config.yml` to your local Capital Bikeshare `hour.csv`, `day.csv`, and readme. `01_validate_data.py` copies them into `data/raw/` for reproducible downstream steps.
 
 ## Quick Start
 
@@ -53,9 +47,21 @@ source .venv/bin/activate
 pip install -r requirements.txt
 python run_pipeline.py
 streamlit run dashboard/app.py
-# optional — same analytics without Streamlit:
-python dashboard/dash_app.py   # http://127.0.0.1:8050
 ```
+
+Dash (same analytics, browser at `http://127.0.0.1:8050`):
+
+```bash
+python dashboard/dash_app.py
+```
+
+After the pipeline completes, optional report figures (PNG) for write-ups:
+
+```bash
+python reports/generate_report_figures.py
+```
+
+Outputs are written to `reports/figures/`.
 
 ## Key Modeling Choices
 
@@ -65,6 +71,7 @@ python dashboard/dash_app.py   # http://127.0.0.1:8050
 - Forecast stack: seasonal naive baseline, regularized linear regression, Poisson benchmark, boosted trees
 - Core prescription: critical-fractile hourly availability targets
 - Spatial prototype: configurable 3-zone overnight rebalancing model
+
 
 ## Academic Guardrails
 
