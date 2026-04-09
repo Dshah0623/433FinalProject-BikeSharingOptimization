@@ -1,0 +1,12 @@
+[build-system]
+requires = ["setuptools>=68", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "bikeshare-project"
+version = "0.1.0"
+description = "End-to-end bike-share forecasting and decision-support system for MSE 433"
+requires-python = ">=3.9"
+
+[tool.setuptools.packages.find]
+where = ["src"]
