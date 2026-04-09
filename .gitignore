@@ -5,7 +5,8 @@ __pycache__/
 .mypy_cache/
 .coverage
 .ipynb_checkpoints/
-.streamlit/
+.streamlit/*
+!.streamlit/config.toml
 .venv/
 env/
 venv/

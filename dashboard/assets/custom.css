@@ -1,0 +1,325 @@
+@import url("https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700&family=JetBrains+Mono:wght@500;600&display=swap");
+
+:root {
+  --text: #0f172a;
+  --text-muted: #475569;
+  --surface: #ffffff;
+  --surface-soft: #f1f5f9;
+  --border: rgba(15, 23, 42, 0.12);
+  --accent: #4f46e5;
+  --accent-soft: #eef2ff;
+  --accent-border: rgba(79, 70, 229, 0.35);
+  --warm: #b45309;
+}
+
+@keyframes fade-rise {
+  from {
+    opacity: 0;
+    transform: translateY(6px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+body {
+  font-family: "Outfit", system-ui, sans-serif !important;
+  background: linear-gradient(180deg, #f8fafc 0%, #f1f5f9 50%, #e2e8f0 100%) !important;
+  min-height: 100vh;
+  color: var(--text) !important;
+}
+
+.dash-container {
+  max-width: 1420px;
+  margin: 0 auto;
+}
+
+/* Hero — light glass card */
+.velo-hero {
+  position: relative;
+  overflow: hidden;
+  border-radius: 20px;
+  padding: 2rem 2.35rem 2.35rem;
+  margin-bottom: 1.5rem;
+  background: linear-gradient(135deg, #ffffff 0%, #f8fafc 45%, #eef2ff 100%);
+  border: 1px solid var(--border);
+  box-shadow: 0 4px 6px -1px rgba(15, 23, 42, 0.06), 0 20px 40px -20px rgba(15, 23, 42, 0.12);
+}
+
+.velo-hero::after {
+  content: "";
+  position: absolute;
+  top: -40%;
+  right: -10%;
+  width: 55%;
+  height: 140%;
+  background: radial-gradient(circle, rgba(79, 70, 229, 0.09) 0%, transparent 65%);
+  pointer-events: none;
+}
+
+.velo-hero-inner {
+  position: relative;
+  z-index: 1;
+}
+
+.velo-kicker {
+  font-size: 0.7rem;
+  font-weight: 700;
+  letter-spacing: 0.26em;
+  text-transform: uppercase;
+  color: var(--accent);
+  margin-bottom: 0.6rem;
+}
+
+.velo-title {
+  font-size: clamp(1.5rem, 3.6vw, 2.25rem);
+  font-weight: 700;
+  letter-spacing: -0.035em;
+  line-height: 1.12;
+  color: var(--text);
+  margin: 0 0 0.5rem 0;
+}
+
+.velo-sub {
+  font-size: 1.02rem;
+  color: var(--text-muted);
+  margin: 0;
+  max-width: 46rem;
+  line-height: 1.58;
+}
+
+.velo-sub strong {
+  color: var(--text);
+  font-weight: 600;
+}
+
+.velo-meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.65rem;
+  margin-top: 1.25rem;
+  padding-top: 1.2rem;
+  border-top: 1px solid var(--border);
+}
+
+.velo-pill {
+  font-family: "JetBrains Mono", ui-monospace, monospace;
+  font-size: 0.72rem;
+  font-weight: 500;
+  color: var(--text);
+  background: var(--accent-soft);
+  border: 1px solid var(--accent-border);
+  border-radius: 999px;
+  padding: 0.4rem 0.9rem;
+  transition: transform 0.15s ease, box-shadow 0.15s ease;
+}
+
+.velo-pill:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px -4px rgba(79, 70, 229, 0.35);
+}
+
+/* Guide cards */
+.guide-card {
+  border-radius: 14px !important;
+  border: 1px solid var(--border) !important;
+  background: var(--surface) !important;
+  box-shadow: 0 2px 8px rgba(15, 23, 42, 0.04);
+  animation: fade-rise 0.4s ease-out both;
+}
+
+.guide-title {
+  font-size: 0.95rem;
+  font-weight: 700;
+  color: var(--accent);
+  margin-bottom: 0.55rem;
+}
+
+.guide-md {
+  font-size: 0.875rem !important;
+  line-height: 1.65 !important;
+  color: var(--text-muted) !important;
+  margin: 0 !important;
+}
+
+.guide-md strong {
+  color: var(--warm) !important;
+  font-weight: 600 !important;
+}
+
+/* Sidebar */
+.sidebar-sticky {
+  position: sticky;
+  top: 1rem;
+  z-index: 10;
+}
+
+.sidebar-panel {
+  background: var(--surface) !important;
+  border: 1px solid var(--border) !important;
+  border-radius: 16px !important;
+  padding: 1.3rem !important;
+  box-shadow: 0 4px 24px -8px rgba(15, 23, 42, 0.1);
+}
+
+.sidebar-brand {
+  font-size: 0.66rem;
+  font-weight: 700;
+  letter-spacing: 0.22em;
+  text-transform: uppercase;
+  color: var(--accent);
+  margin-bottom: 0.25rem;
+}
+
+.sidebar-title {
+  font-size: 1.1rem;
+  font-weight: 700;
+  color: var(--text);
+  margin-bottom: 1rem;
+}
+
+.sidebar-rule {
+  border: none;
+  border-top: 1px solid var(--border);
+  opacity: 1;
+}
+
+.label-ops {
+  color: var(--text-muted) !important;
+  font-weight: 600 !important;
+}
+
+.form-control-ops {
+  color: var(--text) !important;
+  background-color: #ffffff !important;
+  border: 1px solid rgba(15, 23, 42, 0.18) !important;
+  font-family: "JetBrains Mono", monospace !important;
+  font-weight: 500 !important;
+}
+
+.form-control-ops:focus {
+  border-color: var(--accent) !important;
+  box-shadow: 0 0 0 0.2rem rgba(79, 70, 229, 0.15) !important;
+}
+
+.leisure-hint {
+  color: var(--accent) !important;
+  font-size: 0.84rem !important;
+  font-weight: 500 !important;
+}
+
+/* Tabs */
+.dash-tabs .tab {
+  border-radius: 999px !important;
+  padding: 0.42rem 0.95rem !important;
+  font-weight: 600 !important;
+  font-size: 0.8rem !important;
+  margin: 0 5px 8px 0 !important;
+  background: var(--surface-soft) !important;
+  border: 1px solid var(--border) !important;
+  color: var(--text-muted) !important;
+}
+
+.dash-tabs .tab:hover {
+  color: var(--text) !important;
+  border-color: rgba(79, 70, 229, 0.35) !important;
+}
+
+.dash-tabs .tab--selected {
+  background: linear-gradient(180deg, #4f46e5 0%, #4338ca 100%) !important;
+  color: #ffffff !important;
+  border-color: #4338ca !important;
+  box-shadow: 0 4px 14px -4px rgba(79, 70, 229, 0.45);
+}
+
+.dash-tabs .tab-content {
+  padding-top: 0.85rem;
+  animation: fade-rise 0.3s ease-out both;
+}
+
+/* Metrics — numbers must pop on pale cards */
+.metric-card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  padding: 0.95rem 0.85rem;
+  text-align: center;
+  transition: transform 0.15s ease, box-shadow 0.15s ease;
+}
+
+.metric-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 24px -12px rgba(15, 23, 42, 0.12);
+}
+
+.metric-label {
+  font-size: 0.72rem;
+  color: var(--text-muted);
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.07em;
+  margin-bottom: 0.35rem;
+}
+
+.metric-value {
+  font-family: "JetBrains Mono", monospace;
+  font-size: 1.32rem;
+  font-weight: 600;
+  color: var(--text);
+  letter-spacing: -0.02em;
+}
+
+/* Sliders */
+.rc-slider-track {
+  background: linear-gradient(90deg, #c7d2fe, #4f46e5) !important;
+}
+
+.rc-slider-rail {
+  background: #e2e8f0 !important;
+}
+
+.rc-slider-handle {
+  border: 2px solid #ffffff !important;
+  background: #4f46e5 !important;
+  box-shadow: 0 2px 8px rgba(79, 70, 229, 0.4) !important;
+}
+
+/* Data tables */
+.table-ops {
+  --bs-table-color: var(--text);
+  --bs-table-striped-color: var(--text);
+  --bs-table-hover-color: var(--text);
+  color: var(--text) !important;
+}
+
+.table-ops th {
+  font-weight: 700;
+  color: var(--text);
+  background-color: var(--surface-soft) !important;
+  border-color: var(--border) !important;
+}
+
+.table-ops td {
+  font-family: "JetBrains Mono", monospace;
+  font-size: 0.82rem;
+  font-weight: 500;
+  color: var(--text) !important;
+  border-color: var(--border) !important;
+}
+
+.table-ops.table-striped > tbody > tr:nth-of-type(odd) > * {
+  background-color: rgba(241, 245, 249, 0.85) !important;
+}
+
+/* Plotly mode bar on white */
+.modebar {
+  background: rgba(255, 255, 255, 0.9) !important;
+}
+
+/* Bootstrap switch label contrast */
+.switch-ops .form-check-label,
+.switch-ops label {
+  color: var(--text) !important;
+  font-weight: 500 !important;
+}

@@ -8,7 +8,7 @@ This repository implements an end-to-end decision-support system for the MSE 433
 4. cost-based availability planning
 5. stylized overnight zone rebalancing
 6. scenario testing
-7. a Streamlit dashboard
+7. dashboards: **Streamlit** (`dashboard/app.py`) or **Plotly Dash** (`dashboard/dash_app.py`)
 
 ## Project Structure
 
@@ -17,7 +17,7 @@ configs/                  Project configuration
 data/raw/                 Copied source data
 data/interim/             Validation and EDA artifacts
 data/processed/           Modeling tables and forecast artifacts
-dashboard/                Streamlit app
+dashboard/                Streamlit + Dash apps, shared `theme.py`
 models/                   Saved trained models and metadata
 reports/                  Report outline and draft-ready content
 results/figures/          Saved report figures
@@ -53,6 +53,8 @@ source .venv/bin/activate
 pip install -r requirements.txt
 python run_pipeline.py
 streamlit run dashboard/app.py
+# optional — same analytics without Streamlit:
+python dashboard/dash_app.py   # http://127.0.0.1:8050
 ```
 
 ## Key Modeling Choices

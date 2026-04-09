@@ -12,6 +12,9 @@ import streamlit as st
 
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT / "src"))
+sys.path.insert(0, str(Path(__file__).resolve().parent))
+
+from theme import inject_styles, style_plotly
 
 from bikeshare_project.config import load_config
 from bikeshare_project.features import get_feature_columns
@@ -20,7 +23,13 @@ from bikeshare_project.optimization import build_availability_plan, derive_zone_
 from bikeshare_project.paths import DATA_PROCESSED, MODELS, RESULTS_RECOMMENDATIONS, RESULTS_TABLES
 
 
-st.set_page_config(page_title="Bike-Share Decision Support", layout="wide")
+st.set_page_config(
+    page_title="Mobility Ops Desk · Bike-share",
+    page_icon="🚲",
+    layout="wide",
+    initial_sidebar_state="expanded",
+)
+inject_styles()
 
 
 @st.cache_data
@@ -92,11 +101,28 @@ artifacts = load_artifacts()
 config = artifacts["config"]
 best_model = load_best_model()
 
-st.title("Bike-Share Forecast, Allocate, Rebalance")
-st.caption("A next-day forecasting and operations prototype for bike-share planning.")
+st.markdown(
+    f"""
+<div class="velo-hero">
+  <div class="velo-hero-inner">
+    <div class="velo-kicker">Operations intelligence</div>
+    <h1 class="velo-title">Forecast demand. Plan fleet. Rebalance zones.</h1>
+    <p class="velo-sub">Interactive decision support for next-day bike availability, overnight moves, and scenario trade-offs—grounded in your pipeline outputs.</p>
+    <div class="velo-meta">
+      <span class="velo-pill">Best model · {artifacts["metadata"]["best_model_name"]}</span>
+      <span class="velo-pill">Pipeline · validate → forecast → optimize</span>
+    </div>
+  </div>
+</div>
+""",
+    unsafe_allow_html=True,
+)
 
 with st.sidebar:
-    st.subheader("Scenario Controls")
+    st.markdown(
+        '<p class="velo-sidebar-brand">Mobility Ops Desk</p><p class="velo-sidebar-title">Live parameters</p><div class="velo-sidebar-rule"></div>',
+        unsafe_allow_html=True,
+    )
     shortage_cost = st.slider("Shortage penalty", min_value=1.0, max_value=12.0, value=float(config["optimization"]["shortage_cost"]), step=0.5)
     idle_cost = st.slider("Idle cost", min_value=0.5, max_value=5.0, value=float(config["optimization"]["idle_cost"]), step=0.5)
     move_cost = st.slider("Move cost", min_value=0.1, max_value=3.0, value=float(config["optimization"]["move_cost"]), step=0.1)
@@ -107,7 +133,7 @@ with st.sidebar:
         "Employment Core": st.number_input("Employment Core current inventory", min_value=0, value=int(config["optimization"]["default_current_inventory"]["Employment Core"])),
         "Leisure/Mixed Use": st.number_input("Leisure/Mixed Use current inventory", min_value=0, value=int(config["optimization"]["default_current_inventory"]["Leisure/Mixed Use"])),
     }
-    st.markdown("Zone share assumptions")
+    st.markdown('<p style="color:#94a3b8;font-size:0.82rem;margin:1rem 0 0.5rem 0;font-weight:600;">Zone share assumptions</p>', unsafe_allow_html=True)
     residential_share = st.slider("Residential share", 0.0, 1.0, float(config["optimization"]["default_zone_shares"]["workingday"]["Residential"]), 0.01)
     employment_share = st.slider("Employment Core share", 0.0, 1.0, float(config["optimization"]["default_zone_shares"]["workingday"]["Employment Core"]), 0.01)
     leisure_share = max(0.0, round(1.0 - residential_share - employment_share, 2))
@@ -141,42 +167,69 @@ tabs = st.tabs(
 )
 
 with tabs[0]:
-    st.subheader("Historical Demand Insights")
+    st.markdown(
+        '<p class="velo-section-title">Historical demand</p><p class="velo-section-hint">Spot trends, intraday shape, and weather sensitivity. Toggle anomaly days from the sidebar when comparing to “normal” operations.</p>',
+        unsafe_allow_html=True,
+    )
     clean_hourly = artifacts["clean_hourly"].copy()
     if not include_anomaly_day:
         clean_hourly = clean_hourly.loc[clean_hourly["is_anomaly_day"] == 0]
     daily_totals = clean_hourly.groupby("date", as_index=False)["cnt"].sum()
-    fig = px.line(daily_totals, x="date", y="cnt", title="Daily Total Demand")
+    fig = px.line(daily_totals, x="date", y="cnt", title="Daily total demand")
+    style_plotly(fig)
     st.plotly_chart(fig, use_container_width=True)
 
     hourly_profile = clean_hourly.groupby(["workingday", "hr"], as_index=False)["cnt"].mean()
     hourly_profile["day_type"] = hourly_profile["workingday"].map({1: "Working day", 0: "Weekend/Holiday"})
-    fig = px.line(hourly_profile, x="hr", y="cnt", color="day_type", title="Hourly Demand Profile by Day Type")
+    fig = px.line(hourly_profile, x="hr", y="cnt", color="day_type", title="Hourly profile by day type")
+    style_plotly(fig)
     st.plotly_chart(fig, use_container_width=True)
 
     weather_profile = clean_hourly.groupby("weathersit", as_index=False)["cnt"].mean()
-    fig = px.bar(weather_profile, x="weathersit", y="cnt", title="Average Demand by Weather Situation")
+    fig = px.bar(weather_profile, x="weathersit", y="cnt", title="Average demand by weather code")
+    style_plotly(fig)
     st.plotly_chart(fig, use_container_width=True)
 
 with tabs[1]:
-    st.subheader("Next-Day Demand Forecast")
+    st.markdown(
+        '<p class="velo-section-title">Next-day forecast</p><p class="velo-section-hint">Reference run from the pipeline, with empirical uncertainty band and optional actuals when present.</p>',
+        unsafe_allow_html=True,
+    )
     forecast_df = artifacts["next_day_forecasts"].copy()
     fig = go.Figure()
-    fig.add_trace(go.Scatter(x=forecast_df["timestamp"], y=forecast_df["prediction"], mode="lines+markers", name="Forecast"))
+    fig.add_trace(
+        go.Scatter(
+            x=forecast_df["timestamp"],
+            y=forecast_df["prediction"],
+            mode="lines+markers",
+            name="Forecast",
+            line=dict(color="#2dd4bf", width=2),
+            marker=dict(size=4, color="#2dd4bf"),
+        )
+    )
     fig.add_trace(
         go.Scatter(
             x=list(forecast_df["timestamp"]) + list(forecast_df["timestamp"][::-1]),
             y=list(forecast_df["prediction_upper"]) + list(forecast_df["prediction_lower"][::-1]),
             fill="toself",
-            fillcolor="rgba(54, 162, 235, 0.2)",
+            fillcolor="rgba(45, 212, 191, 0.18)",
             line=dict(color="rgba(255,255,255,0)"),
             hoverinfo="skip",
             name="Empirical interval",
         )
     )
     if "cnt" in forecast_df.columns:
-        fig.add_trace(go.Scatter(x=forecast_df["timestamp"], y=forecast_df["cnt"], mode="lines", name="Actual", line=dict(dash="dash")))
-    fig.update_layout(title="Reference Next-Day Forecast")
+        fig.add_trace(
+            go.Scatter(
+                x=forecast_df["timestamp"],
+                y=forecast_df["cnt"],
+                mode="lines",
+                name="Actual",
+                line=dict(dash="dash", color="#a78bfa", width=1.5),
+            )
+        )
+    fig.update_layout(title="Reference next-day forecast")
+    style_plotly(fig)
     st.plotly_chart(fig, use_container_width=True)
 
     kpi_cols = st.columns(4)
@@ -186,46 +239,77 @@ with tabs[1]:
     kpi_cols[3].metric("Best model", artifacts["metadata"]["best_model_name"])
 
 with tabs[2]:
-    st.subheader("Allocation / Rebalancing")
+    st.markdown(
+        '<p class="velo-section-title">Allocation & rebalancing</p><p class="velo-section-hint">Live plan from sidebar costs and fleet size; heatmap shows overnight flows between zones.</p>',
+        unsafe_allow_html=True,
+    )
     kpi_cols = st.columns(4)
     kpi_cols[0].metric("Planned availability total", f"{live_plan['planned_availability'].sum():,.0f}")
     kpi_cols[1].metric("Proxy shortage", f"{live_plan['proxy_shortage'].sum():,.0f}")
     kpi_cols[2].metric("Proxy idle", f"{live_plan['proxy_idle'].sum():,.0f}")
     kpi_cols[3].metric("Bikes moved", f"{zone_move_plan['bikes_moved'].sum():,.0f}")
 
-    fig = px.bar(live_plan, x="hr", y=["prediction", "planned_availability"], barmode="group", title="Forecast vs Planned Availability")
+    fig = px.bar(
+        live_plan,
+        x="hr",
+        y=["prediction", "planned_availability"],
+        barmode="group",
+        title="Forecast vs planned availability (hourly)",
+    )
+    style_plotly(fig)
     st.plotly_chart(fig, use_container_width=True)
 
     move_matrix = zone_move_plan.pivot(index="origin", columns="destination", values="bikes_moved").fillna(0)
-    fig = px.imshow(move_matrix, text_auto=True, aspect="auto", title="Overnight Zone Move Matrix")
+    fig = px.imshow(
+        move_matrix,
+        text_auto=True,
+        aspect="auto",
+        title="Overnight zone move matrix",
+        color_continuous_scale=[[0, "#0f172a"], [0.5, "#134e4a"], [1, "#2dd4bf"]],
+    )
+    style_plotly(fig)
     st.plotly_chart(fig, use_container_width=True)
     st.dataframe(zone_summary, use_container_width=True)
 
 with tabs[3]:
-    st.subheader("Scenario Testing")
+    st.markdown(
+        '<p class="velo-section-title">Scenario testing</p><p class="velo-section-hint">Compare precomputed operational scenarios on cost index and fleet movement.</p>',
+        unsafe_allow_html=True,
+    )
     scenario_results = artifacts["scenario_results"].copy()
-    fig = px.bar(scenario_results, x="scenario", y="weighted_cost_index", color="scenario", title="Scenario Comparison: Weighted Cost Index")
+    fig = px.bar(scenario_results, x="scenario", y="weighted_cost_index", color="scenario", title="Weighted cost index by scenario")
+    style_plotly(fig)
     st.plotly_chart(fig, use_container_width=True)
-    fig = px.bar(scenario_results, x="scenario", y="bikes_moved", color="scenario", title="Scenario Comparison: Bikes Moved")
+    fig = px.bar(scenario_results, x="scenario", y="bikes_moved", color="scenario", title="Bikes moved by scenario")
+    style_plotly(fig)
     st.plotly_chart(fig, use_container_width=True)
     st.dataframe(scenario_results.sort_values("weighted_cost_index"), use_container_width=True)
 
 with tabs[4]:
-    st.subheader("Model Diagnostics")
+    st.markdown(
+        '<p class="velo-section-title">Model diagnostics</p><p class="velo-section-hint">Holdout errors and feature contributions from the training run.</p>',
+        unsafe_allow_html=True,
+    )
     overall_metrics = artifacts["holdout_metrics"].loc[artifacts["holdout_metrics"]["segment_type"] == "overall"].copy()
-    fig = px.bar(overall_metrics, x="model", y="rmse", title="Holdout RMSE by Model")
+    fig = px.bar(overall_metrics, x="model", y="rmse", title="Holdout RMSE by model")
+    style_plotly(fig)
     st.plotly_chart(fig, use_container_width=True)
-    fig = px.bar(overall_metrics, x="model", y="mae", title="Holdout MAE by Model")
+    fig = px.bar(overall_metrics, x="model", y="mae", title="Holdout MAE by model")
+    style_plotly(fig)
     st.plotly_chart(fig, use_container_width=True)
 
     feature_importance = artifacts["feature_importance"].copy()
     if not feature_importance.empty:
         top_features = feature_importance.sort_values("importance_mean", ascending=False).head(15)
-        fig = px.bar(top_features, x="importance_mean", y="feature", orientation="h", title="Top Feature Importances")
+        fig = px.bar(top_features, x="importance_mean", y="feature", orientation="h", title="Top feature importances")
+        style_plotly(fig)
         st.plotly_chart(fig, use_container_width=True)
 
 with tabs[5]:
-    st.subheader("Business Impact")
+    st.markdown(
+        '<p class="velo-section-title">Business impact</p><p class="velo-section-hint">Forecast-driven planning vs static baseline: cost structure and service proxies.</p>',
+        unsafe_allow_html=True,
+    )
     policy_summary = artifacts["policy_cost_breakdown"].copy()
     st.dataframe(policy_summary, use_container_width=True)
     forecast_driven = policy_summary.loc[policy_summary["policy"] == "forecast_driven"].iloc[0]
@@ -238,5 +322,12 @@ with tabs[5]:
     kpi_cols[2].metric("Utilization proxy", f"{forecast_driven['mean_utilization_proxy']:.2%}")
     kpi_cols[3].metric("Baseline cost index", f"{baseline['weighted_cost_index']:,.1f}")
 
-    fig = px.bar(policy_summary, x="policy", y=["total_proxy_shortage", "total_proxy_idle"], barmode="group", title="Baseline vs Forecast-Driven Planning")
+    fig = px.bar(
+        policy_summary,
+        x="policy",
+        y=["total_proxy_shortage", "total_proxy_idle"],
+        barmode="group",
+        title="Shortage vs idle totals: baseline vs forecast-driven",
+    )
+    style_plotly(fig)
     st.plotly_chart(fig, use_container_width=True)
